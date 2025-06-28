@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>USDT Mining - Dashboard</title>
+  <title>USDT Mining & Withdraw</title>
   <style>
     body {
       margin: 0;
       background-color: #0e0e0e;
       color: #fff;
       font-family: 'Segoe UI', sans-serif;
+      padding: 40px 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 20px;
     }
 
     h1 {
@@ -22,7 +22,7 @@
       text-shadow: 0 0 10px #00ffae;
     }
 
-    .mining-box {
+    .box {
       background: #1a1a1a;
       padding: 30px 25px;
       border-radius: 12px;
@@ -30,6 +30,7 @@
       width: 100%;
       text-align: center;
       box-shadow: 0 0 15px rgba(0, 255, 170, 0.2);
+      margin-bottom: 30px;
     }
 
     .balance {
@@ -44,39 +45,63 @@
       color: #ccc;
     }
 
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: none;
+      background: #2a2a2a;
+      color: #fff;
+      font-size: 16px;
+    }
+
     button {
       background-color: #00ffae;
       color: #000;
       font-weight: bold;
-      font-size: 16px;
+      padding: 12px;
+      width: 100%;
       border: none;
       border-radius: 8px;
-      padding: 12px 25px;
       cursor: pointer;
-      margin-top: 25px;
-      transition: background 0.3s;
+      margin-top: 10px;
     }
 
-    button:hover {
-      background-color: #00c99a;
-    }
-
-    .status {
+    .status, .result {
       margin-top: 15px;
       font-size: 14px;
-      color: #888;
+      color: #999;
+    }
+
+    .result.success {
+      color: #00ffae;
+    }
+
+    .result.error {
+      color: red;
     }
   </style>
 </head>
 <body>
 
-  <h1>🚀 USDT Mining</h1>
+  <h1>🚀 USDT Mining + Withdraw</h1>
 
-  <div class="mining-box">
+  <!-- Mining Section -->
+  <div class="box">
     <p class="usdt">Current Balance</p>
     <div class="balance" id="balance">0.00000000</div>
     <button onclick="toggleMining()" id="mineBtn">Start Mining</button>
     <p class="status" id="statusText">Mining paused</p>
+  </div>
+
+  <!-- Withdraw Section -->
+  <div class="box">
+    <h2 style="color:#00ffae;">Withdraw USDT</h2>
+    <input type="text" id="wallet" placeholder="Enter TRC20 Wallet Address" />
+    <input type="number" id="amount" placeholder="Minimum $100 to withdraw" />
+    <button onclick="withdrawUSDT()">Withdraw Now</button>
+    <div class="result" id="resultMsg"></div>
   </div>
 
   <script>
@@ -93,7 +118,7 @@
         btn.textContent = "Stop Mining";
         status.textContent = "⛏️ Mining in progress...";
         interval = setInterval(() => {
-          balance += 0.00000123;
+          balance += 0.00074321;
           document.getElementById("balance").textContent = balance.toFixed(8);
         }, 100);
       } else {
@@ -102,6 +127,37 @@
         status.textContent = "Mining paused";
         clearInterval(interval);
       }
+    }
+
+    function withdrawUSDT() {
+      const wallet = document.getElementById("wallet").value.trim();
+      const amount = parseFloat(document.getElementById("amount").value);
+      const result = document.getElementById("resultMsg");
+
+      if (wallet.length < 15) {
+        result.className = "result error";
+        result.textContent = "❌ Enter a valid wallet address.";
+        return;
+      }
+
+      if (isNaN(amount) || amount < 100) {
+        result.className = "result error";
+        result.textContent = "❌ Minimum withdrawal is $100.";
+        return;
+      }
+
+      if (amount > balance) {
+        result.className = "result error";
+        result.textContent = "❌ Insufficient balance.";
+        return;
+      }
+
+      const txn = "TXN" + Math.floor(100000000 + Math.random() * 900000000);
+      balance -= amount;
+      document.getElementById("balance").textContent = balance.toFixed(8);
+
+      result.className = "result success";
+      result.innerHTML = `✅ $${amount.toFixed(2)} USDT sent to<br><b>${wallet}</b><br>TXN ID: <b>${txn}</b>`;
     }
   </script>
 
