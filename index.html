@@ -3,198 +3,144 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Blackjack Game</title>
+  <title>Credit Card Generator</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #111;
+      background: #121212;
       color: #fff;
-      text-align: center;
-      padding: 20px;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
     }
 
     h1 {
       color: #00ffea;
+      margin-bottom: 30px;
     }
 
-    #game-area {
-      margin-top: 20px;
+    .card-box {
+      background: #1e1e1e;
+      padding: 20px 25px;
+      border-radius: 10px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+      text-align: center;
     }
 
-    .hand {
-      margin: 20px 0;
+    .field {
+      margin: 15px 0;
     }
 
-    .card {
-      display: inline-block;
-      background: #222;
-      border: 1px solid #444;
+    .field label {
+      display: block;
+      margin-bottom: 5px;
+      color: #ccc;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 10px;
       border-radius: 6px;
-      padding: 15px;
-      margin: 5px;
-      font-size: 20px;
-      width: 50px;
-    }
-
-    .buttons {
-      margin-top: 20px;
+      border: none;
+      background: #2c2c2c;
+      color: #fff;
+      font-size: 16px;
+      text-align: center;
     }
 
     button {
       background-color: #00ffea;
-      color: #000;
-      padding: 10px 20px;
       border: none;
-      margin: 5px;
+      padding: 12px 20px;
       font-weight: bold;
       border-radius: 8px;
+      margin-top: 20px;
       cursor: pointer;
+      width: 100%;
     }
 
-    #message {
-      margin-top: 20px;
-      font-size: 18px;
-      color: yellow;
+    .copy {
+      font-size: 14px;
+      margin-top: 10px;
+      color: #0f0;
+      display: none;
     }
   </style>
 </head>
 <body>
 
-  <h1>🃏 Blackjack Game</h1>
+  <h1>💳 Credit Card Generator</h1>
 
-  <div id="game-area">
-    <div>
-      <h2>Player (<span id="player-score">0</span>)</h2>
-      <div id="player-hand" class="hand"></div>
+  <div class="card-box">
+    <div class="field">
+      <label>Card Number</label>
+      <input id="cardNumber" readonly />
+    </div>
+    <div class="field">
+      <label>CVV</label>
+      <input id="cvv" readonly />
+    </div>
+    <div class="field">
+      <label>Expiry</label>
+      <input id="expiry" readonly />
     </div>
 
-    <div>
-      <h2>Dealer (<span id="dealer-score">0</span>)</h2>
-      <div id="dealer-hand" class="hand"></div>
-    </div>
-
-    <div class="buttons">
-      <button onclick="hit()">Hit</button>
-      <button onclick="stand()">Stand</button>
-      <button onclick="resetGame()">Restart</button>
-    </div>
-
-    <div id="message"></div>
+    <button onclick="generateCard()">Generate Card</button>
+    <p class="copy" id="copyMsg">✔️ Copied to clipboard!</p>
   </div>
 
   <script>
-    const playerHand = [];
-    const dealerHand = [];
-    let deck = [];
-    let playerScore = 0;
-    let dealerScore = 0;
-    let gameOver = false;
+    function luhnChecksum(cardNumber) {
+      let sum = 0;
+      let alt = false;
+      for (let i = cardNumber.length - 1; i >= 0; i--) {
+        let n = parseInt(cardNumber[i], 10);
+        if (alt) {
+          n *= 2;
+          if (n > 9) n -= 9;
+        }
+        sum += n;
+        alt = !alt;
+      }
+      return sum % 10 === 0;
+    }
 
-    function createDeck() {
-      const suits = ['♠', '♥', '♣', '♦'];
-      const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-      const deck = [];
-      for (let suit of suits) {
-        for (let value of values) {
-          deck.push({ value, suit });
+    function generateCardNumber(prefix) {
+      let card = prefix;
+      while (card.length < 15) {
+        card += Math.floor(Math.random() * 10);
+      }
+
+      // Calculate check digit
+      for (let i = 0; i <= 9; i++) {
+        let test = card + i;
+        if (luhnChecksum(test)) {
+          return test;
         }
       }
-      return deck.sort(() => Math.random() - 0.5);
+      return null;
     }
 
-    function getCardValue(card) {
-      if (['J', 'Q', 'K'].includes(card.value)) return 10;
-      if (card.value === 'A') return 11;
-      return parseInt(card.value);
-    }
+    function generateCard() {
+      const types = ["4", "5"]; // Visa / MasterCard
+      const prefix = types[Math.floor(Math.random() * types.length)];
+      const number = generateCardNumber(prefix);
 
-    function calculateScore(hand) {
-      let score = 0;
-      let aces = 0;
-      for (let card of hand) {
-        const val = getCardValue(card);
-        score += val;
-        if (card.value === 'A') aces++;
-      }
-      while (score > 21 && aces > 0) {
-        score -= 10;
-        aces--;
-      }
-      return score;
-    }
+      const cvv = Math.floor(100 + Math.random() * 900);
+      const month = ("0" + Math.ceil(Math.random() * 12)).slice(-2);
+      const year = new Date().getFullYear() + Math.floor(Math.random() * 5) + 1;
 
-    function renderHand(hand, elementId) {
-      const handDiv = document.getElementById(elementId);
-      handDiv.innerHTML = "";
-      hand.forEach(card => {
-        const cardDiv = document.createElement("div");
-        cardDiv.className = "card";
-        cardDiv.textContent = `${card.value}${card.suit}`;
-        handDiv.appendChild(cardDiv);
-      });
-    }
+      document.getElementById("cardNumber").value = number;
+      document.getElementById("cvv").value = cvv;
+      document.getElementById("expiry").value = `${month}/${year}`;
 
-    function updateScores() {
-      playerScore = calculateScore(playerHand);
-      dealerScore = calculateScore(dealerHand);
-      document.getElementById("player-score").textContent = playerScore;
-      document.getElementById("dealer-score").textContent = dealerScore;
+      navigator.clipboard.writeText(`${number} | ${cvv} | ${month}/${year}`);
+      document.getElementById("copyMsg").style.display = "block";
+      setTimeout(() => document.getElementById("copyMsg").style.display = "none", 2000);
     }
-
-    function hit() {
-      if (gameOver) return;
-      const card = deck.pop();
-      playerHand.push(card);
-      renderHand(playerHand, "player-hand");
-      updateScores();
-      if (playerScore > 21) {
-        endGame("💥 You busted! Dealer wins.");
-      }
-    }
-
-    function stand() {
-      if (gameOver) return;
-      while (dealerScore < 17) {
-        const card = deck.pop();
-        dealerHand.push(card);
-        updateScores();
-      }
-      renderHand(dealerHand, "dealer-hand");
-      checkWinner();
-    }
-
-    function checkWinner() {
-      if (dealerScore > 21) {
-        endGame("🔥 Dealer busted! You win.");
-      } else if (dealerScore > playerScore) {
-        endGame("👎 Dealer wins.");
-      } else if (dealerScore < playerScore) {
-        endGame("🎉 You win!");
-      } else {
-        endGame("⚖️ It's a draw.");
-      }
-    }
-
-    function endGame(message) {
-      document.getElementById("message").textContent = message;
-      gameOver = true;
-    }
-
-    function resetGame() {
-      deck = createDeck();
-      playerHand.length = 0;
-      dealerHand.length = 0;
-      gameOver = false;
-      document.getElementById("message").textContent = "";
-      playerHand.push(deck.pop(), deck.pop());
-      dealerHand.push(deck.pop());
-      renderHand(playerHand, "player-hand");
-      renderHand(dealerHand, "dealer-hand");
-      updateScores();
-    }
-
-    // Start game
-    resetGame();
   </script>
 </body>
 </html>
