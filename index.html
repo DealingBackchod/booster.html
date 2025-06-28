@@ -3,12 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Credit Card Generator</title>
+  <title>USDT Mining - Dashboard</title>
   <style>
     body {
-      background: #121212;
+      margin: 0;
+      background-color: #0e0e0e;
       color: #fff;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -16,131 +17,93 @@
     }
 
     h1 {
-      color: #00ffea;
+      color: #00ffae;
       margin-bottom: 30px;
+      text-shadow: 0 0 10px #00ffae;
     }
 
-    .card-box {
-      background: #1e1e1e;
-      padding: 20px 25px;
-      border-radius: 10px;
+    .mining-box {
+      background: #1a1a1a;
+      padding: 30px 25px;
+      border-radius: 12px;
       max-width: 400px;
       width: 100%;
-      box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
       text-align: center;
+      box-shadow: 0 0 15px rgba(0, 255, 170, 0.2);
     }
 
-    .field {
+    .balance {
+      font-size: 2.2em;
       margin: 15px 0;
+      color: #00ffae;
     }
 
-    .field label {
-      display: block;
-      margin-bottom: 5px;
+    .usdt {
+      font-weight: bold;
+      font-size: 1.2em;
       color: #ccc;
     }
 
-    .field input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-      background: #2c2c2c;
-      color: #fff;
-      font-size: 16px;
-      text-align: center;
-    }
-
     button {
-      background-color: #00ffea;
-      border: none;
-      padding: 12px 20px;
+      background-color: #00ffae;
+      color: #000;
       font-weight: bold;
+      font-size: 16px;
+      border: none;
       border-radius: 8px;
-      margin-top: 20px;
+      padding: 12px 25px;
       cursor: pointer;
-      width: 100%;
+      margin-top: 25px;
+      transition: background 0.3s;
     }
 
-    .copy {
+    button:hover {
+      background-color: #00c99a;
+    }
+
+    .status {
+      margin-top: 15px;
       font-size: 14px;
-      margin-top: 10px;
-      color: #0f0;
-      display: none;
+      color: #888;
     }
   </style>
 </head>
 <body>
 
-  <h1>💳 Credit Card Generator</h1>
+  <h1>🚀 USDT Mining</h1>
 
-  <div class="card-box">
-    <div class="field">
-      <label>Card Number</label>
-      <input id="cardNumber" readonly />
-    </div>
-    <div class="field">
-      <label>CVV</label>
-      <input id="cvv" readonly />
-    </div>
-    <div class="field">
-      <label>Expiry</label>
-      <input id="expiry" readonly />
-    </div>
-
-    <button onclick="generateCard()">Generate Card</button>
-    <p class="copy" id="copyMsg">✔️ Copied to clipboard!</p>
+  <div class="mining-box">
+    <p class="usdt">Current Balance</p>
+    <div class="balance" id="balance">0.00000000</div>
+    <button onclick="toggleMining()" id="mineBtn">Start Mining</button>
+    <p class="status" id="statusText">Mining paused</p>
   </div>
 
   <script>
-    function luhnChecksum(cardNumber) {
-      let sum = 0;
-      let alt = false;
-      for (let i = cardNumber.length - 1; i >= 0; i--) {
-        let n = parseInt(cardNumber[i], 10);
-        if (alt) {
-          n *= 2;
-          if (n > 9) n -= 9;
-        }
-        sum += n;
-        alt = !alt;
+    let balance = 0;
+    let mining = false;
+    let interval;
+
+    function toggleMining() {
+      const btn = document.getElementById("mineBtn");
+      const status = document.getElementById("statusText");
+
+      if (!mining) {
+        mining = true;
+        btn.textContent = "Stop Mining";
+        status.textContent = "⛏️ Mining in progress...";
+        interval = setInterval(() => {
+          balance += 0.00000123;
+          document.getElementById("balance").textContent = balance.toFixed(8);
+        }, 100);
+      } else {
+        mining = false;
+        btn.textContent = "Start Mining";
+        status.textContent = "Mining paused";
+        clearInterval(interval);
       }
-      return sum % 10 === 0;
-    }
-
-    function generateCardNumber(prefix) {
-      let card = prefix;
-      while (card.length < 15) {
-        card += Math.floor(Math.random() * 10);
-      }
-
-      // Calculate check digit
-      for (let i = 0; i <= 9; i++) {
-        let test = card + i;
-        if (luhnChecksum(test)) {
-          return test;
-        }
-      }
-      return null;
-    }
-
-    function generateCard() {
-      const types = ["4", "5"]; // Visa / MasterCard
-      const prefix = types[Math.floor(Math.random() * types.length)];
-      const number = generateCardNumber(prefix);
-
-      const cvv = Math.floor(100 + Math.random() * 900);
-      const month = ("0" + Math.ceil(Math.random() * 12)).slice(-2);
-      const year = new Date().getFullYear() + Math.floor(Math.random() * 5) + 1;
-
-      document.getElementById("cardNumber").value = number;
-      document.getElementById("cvv").value = cvv;
-      document.getElementById("expiry").value = `${month}/${year}`;
-
-      navigator.clipboard.writeText(`${number} | ${cvv} | ${month}/${year}`);
-      document.getElementById("copyMsg").style.display = "block";
-      setTimeout(() => document.getElementById("copyMsg").style.display = "none", 2000);
     }
   </script>
+
 </body>
 </html>
