@@ -3,99 +3,198 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Booster Recharge</title>
+  <title>Blackjack Game</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #111, #444);
+      background-color: #111;
       color: #fff;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .booster-container {
-      background: #222;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-      width: 90%;
-      max-width: 400px;
       text-align: center;
+      padding: 20px;
     }
+
     h1 {
-      margin-bottom: 20px;
       color: #00ffea;
     }
-    select, button {
-      width: 100%;
-      padding: 12px;
-      margin: 15px 0;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-    }
-    select {
-      background: #333;
-      color: white;
-    }
-    button {
-      background: #00ffea;
-      color: black;
-      font-weight: bold;
-    }
-    .payment-info {
-      display: none;
+
+    #game-area {
       margin-top: 20px;
     }
-    .upi {
-      font-size: 18px;
-      margin: 10px 0;
-      color: #ffea00;
+
+    .hand {
+      margin: 20px 0;
     }
-    .qr {
-      width: 180px;
-      height: 180px;
-      margin: auto;
+
+    .card {
+      display: inline-block;
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 15px;
+      margin: 5px;
+      font-size: 20px;
+      width: 50px;
+    }
+
+    .buttons {
+      margin-top: 20px;
+    }
+
+    button {
+      background-color: #00ffea;
+      color: #000;
+      padding: 10px 20px;
+      border: none;
+      margin: 5px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #message {
+      margin-top: 20px;
+      font-size: 18px;
+      color: yellow;
     }
   </style>
 </head>
 <body>
-  <div class="booster-container">
-    <h1>Recharge Booster</h1>
-    <label>Select Booster Amount:</label>
-    <select id="amount">
-      <option value="">-- Select --</option>
-      <option value="₹50">₹50</option>
-      <option value="₹100">₹100</option>
-      <option value="₹200">₹200</option>
-      <option value="₹500">₹500</option>
-    </select>
-    <button onclick="showPayment()">Proceed to Boost</button>
 
-    <div class="payment-info" id="payInfo">
-      <p class="upi">Send to UPI ID:</p>
-      <strong class="upi">hakimiwashifali@fam</strong>
-      <div class="qr">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=hakimiwashifali@fam&pn=BoosterPayment" alt="UPI QR" />
-      </div>
-      <p style="margin-top: 10px;">After payment, send screenshot to WhatsApp: <br><b>Coming Soon...</b></p>
+  <h1>🃏 Blackjack Game</h1>
+
+  <div id="game-area">
+    <div>
+      <h2>Player (<span id="player-score">0</span>)</h2>
+      <div id="player-hand" class="hand"></div>
     </div>
+
+    <div>
+      <h2>Dealer (<span id="dealer-score">0</span>)</h2>
+      <div id="dealer-hand" class="hand"></div>
+    </div>
+
+    <div class="buttons">
+      <button onclick="hit()">Hit</button>
+      <button onclick="stand()">Stand</button>
+      <button onclick="resetGame()">Restart</button>
+    </div>
+
+    <div id="message"></div>
   </div>
 
   <script>
-    function showPayment() {
-      const amount = document.getElementById("amount").value;
-      const payInfo = document.getElementById("payInfo");
+    const playerHand = [];
+    const dealerHand = [];
+    let deck = [];
+    let playerScore = 0;
+    let dealerScore = 0;
+    let gameOver = false;
 
-      if (amount !== "") {
-        payInfo.style.display = "block";
-      } else {
-        alert("⚠️ Please select an amount first.");
+    function createDeck() {
+      const suits = ['♠', '♥', '♣', '♦'];
+      const values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+      const deck = [];
+      for (let suit of suits) {
+        for (let value of values) {
+          deck.push({ value, suit });
+        }
+      }
+      return deck.sort(() => Math.random() - 0.5);
+    }
+
+    function getCardValue(card) {
+      if (['J', 'Q', 'K'].includes(card.value)) return 10;
+      if (card.value === 'A') return 11;
+      return parseInt(card.value);
+    }
+
+    function calculateScore(hand) {
+      let score = 0;
+      let aces = 0;
+      for (let card of hand) {
+        const val = getCardValue(card);
+        score += val;
+        if (card.value === 'A') aces++;
+      }
+      while (score > 21 && aces > 0) {
+        score -= 10;
+        aces--;
+      }
+      return score;
+    }
+
+    function renderHand(hand, elementId) {
+      const handDiv = document.getElementById(elementId);
+      handDiv.innerHTML = "";
+      hand.forEach(card => {
+        const cardDiv = document.createElement("div");
+        cardDiv.className = "card";
+        cardDiv.textContent = `${card.value}${card.suit}`;
+        handDiv.appendChild(cardDiv);
+      });
+    }
+
+    function updateScores() {
+      playerScore = calculateScore(playerHand);
+      dealerScore = calculateScore(dealerHand);
+      document.getElementById("player-score").textContent = playerScore;
+      document.getElementById("dealer-score").textContent = dealerScore;
+    }
+
+    function hit() {
+      if (gameOver) return;
+      const card = deck.pop();
+      playerHand.push(card);
+      renderHand(playerHand, "player-hand");
+      updateScores();
+      if (playerScore > 21) {
+        endGame("💥 You busted! Dealer wins.");
       }
     }
+
+    function stand() {
+      if (gameOver) return;
+      while (dealerScore < 17) {
+        const card = deck.pop();
+        dealerHand.push(card);
+        updateScores();
+      }
+      renderHand(dealerHand, "dealer-hand");
+      checkWinner();
+    }
+
+    function checkWinner() {
+      if (dealerScore > 21) {
+        endGame("🔥 Dealer busted! You win.");
+      } else if (dealerScore > playerScore) {
+        endGame("👎 Dealer wins.");
+      } else if (dealerScore < playerScore) {
+        endGame("🎉 You win!");
+      } else {
+        endGame("⚖️ It's a draw.");
+      }
+    }
+
+    function endGame(message) {
+      document.getElementById("message").textContent = message;
+      gameOver = true;
+    }
+
+    function resetGame() {
+      deck = createDeck();
+      playerHand.length = 0;
+      dealerHand.length = 0;
+      gameOver = false;
+      document.getElementById("message").textContent = "";
+      playerHand.push(deck.pop(), deck.pop());
+      dealerHand.push(deck.pop());
+      renderHand(playerHand, "player-hand");
+      renderHand(dealerHand, "dealer-hand");
+      updateScores();
+    }
+
+    // Start game
+    resetGame();
   </script>
 </body>
 </html>
