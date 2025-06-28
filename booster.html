@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Booster Recharge</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #111, #444);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .booster-container {
+      background: #222;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #00ffea;
+    }
+    select, button {
+      width: 100%;
+      padding: 12px;
+      margin: 15px 0;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+    select {
+      background: #333;
+      color: white;
+    }
+    button {
+      background: #00ffea;
+      color: black;
+      font-weight: bold;
+    }
+    .payment-info {
+      display: none;
+      margin-top: 20px;
+    }
+    .upi {
+      font-size: 18px;
+      margin: 10px 0;
+      color: #ffea00;
+    }
+    .qr {
+      width: 180px;
+      height: 180px;
+      margin: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="booster-container">
+    <h1>Recharge Booster</h1>
+    <label>Select Booster Amount:</label>
+    <select id="amount">
+      <option value="">-- Select --</option>
+      <option value="₹50">₹50</option>
+      <option value="₹100">₹100</option>
+      <option value="₹200">₹200</option>
+      <option value="₹500">₹500</option>
+    </select>
+    <button onclick="showPayment()">Proceed to Boost</button>
+
+    <div class="payment-info" id="payInfo">
+      <p class="upi">Send to UPI ID:</p>
+      <strong class="upi">hakimiwashifali@fam</strong>
+      <div class="qr">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=hakimiwashifali@fam&pn=BoosterPayment" alt="UPI QR" />
+      </div>
+      <p style="margin-top: 10px;">After payment, send screenshot to WhatsApp: <br><b>Coming Soon...</b></p>
+    </div>
+  </div>
+
+  <script>
+    function showPayment() {
+      const amount = document.getElementById("amount").value;
+      const payInfo = document.getElementById("payInfo");
+
+      if (amount !== "") {
+        payInfo.style.display = "block";
+      } else {
+        alert("⚠️ Please select an amount first.");
+      }
+    }
+  </script>
+</body>
+</html>
